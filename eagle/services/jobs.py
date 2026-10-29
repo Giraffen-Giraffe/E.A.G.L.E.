@@ -11,7 +11,8 @@ import traceback
 
 from ..db import Document, Job, session_scope, utcnow, log_event
 from ..pipeline.processor import process_document
-from ..vlm import VlmUnavailable
+from ..settings import get_settings
+from ..vlm import VlmUnavailable, llama_manager
 
 LOG = logging.getLogger("eagle.jobs")
 
@@ -86,8 +87,20 @@ class JobWorker:
         except Exception:  # noqa: BLE001
             pass
 
+    @staticmethod
+    def waiting_reason() -> str:
+        """処理を始められない理由(読み取りエンジンが未導入など)。始められるなら空。"""
+        if get_settings()["vlm"]["backend"] != "llama_cpp":
+            return ""
+        return "読み取りエンジン(VLM)の導入待ち" if llama_manager().status().get("needs_setup") else ""
+
     def _loop(self) -> None:
         while not self._stop.is_set():
+            # 未導入のまま処理すると失敗扱いになるため、導入が済むまで待ちに置いておく
+            if self.waiting_reason():
+                self._wake.wait(timeout=5.0)
+                self._wake.clear()
+                continue
             nxt = self._next()
             if nxt is None:
                 self._wake.wait(timeout=5.0)
@@ -136,7 +149,7 @@ class JobWorker:
         cur = dict(self.current) if self.current else None
         if cur:
             cur["elapsed"] = round(time.time() - cur.pop("started"), 1)
-        return {"running": cur, "queued": queued, "recent": items,
+        return {"running": cur, "queued": queued, "recent": items, "waiting": self.waiting_reason(),
                 "alive": bool(self._thread and self._thread.is_alive())}
 
 

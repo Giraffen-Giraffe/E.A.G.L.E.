@@ -51,6 +51,7 @@ interface VlmStatus {
   setup: { state: string; step: string; file: string; percent: number; downloaded: number; total: number; error: string; log: string[] };
   presets: Record<string, { label: string; size_gb: number }>;
   accelerator: { nvidia: boolean; gpu: string; vram_mb: number; driver: string };
+  recommended: string;
 }
 
 const LLAMA_STATE: Record<string, string> = {
@@ -71,7 +72,7 @@ function VlmTab({ st, set, save, busy, isAdmin }: { st: Settings; set: (s: strin
   const setL = (p: Settings) => set("vlm", { llama: { ...llama, ...p } });
   const act = (a: string) => run(() => api.post(`/api/vlm/${a}`).then(load));
   const acc = vs?.accelerator;
-  const recommended = !acc?.nvidia ? "light" : acc.vram_mb >= 12000 ? "standard" : acc.vram_mb >= 7000 ? "standard" : "light";
+  const recommended = vs?.recommended ?? "standard";
 
   return (
     <div className="grid-2 top">

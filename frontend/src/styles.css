@@ -213,6 +213,7 @@ a.stat:hover { border-color: var(--primary); }
 .vlm-pill .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
 .vlm-ready .dot, .vlm-external .dot { background: var(--ok); }
 .vlm-starting .dot { background: var(--warn); animation: pulse 1s infinite; }
+.vlm-setup .dot { background: var(--warn); }
 .vlm-error .dot { background: var(--bad); }
 @keyframes pulse { 50% { opacity: .3; } }
 
@@ -285,6 +286,8 @@ a.stat:hover { border-color: var(--primary); }
 .advanced > .field, .advanced > .row { margin-bottom: 10px; }
 .folder-row { padding: 6px 0; border-bottom: 1px solid var(--line); }
 .setup-progress { display: flex; flex-direction: column; gap: 6px; }
+.setup-card { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent); }
+.setup-card p { margin: 0; }
 
 /* ── モーダル・通知 ───────────────────────────── */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(10, 18, 30, .5); display: grid; place-items: center; z-index: 40; }

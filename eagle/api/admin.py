@@ -1,6 +1,7 @@
 """管理系 API: テンプレート/ROI・追加項目・マスタ・設定・VLM・監視・外部DB・利用者・学習・ログ。"""
 from __future__ import annotations
 
+import functools
 import re
 
 from fastapi import APIRouter, Body, Depends, File, Form, HTTPException, Request, Response, UploadFile
@@ -466,7 +467,7 @@ def vlm_status(user: dict = Depends(viewer)):
     mgr.configure(st["llama"])
     return {"backend": st["backend"], "llama": mgr.status(), "setup": setup_runner().status(),
             "presets": {k: {"label": v["label"], "size_gb": v["size_gb"]} for k, v in PRESETS.items()},
-            "accelerator": detect_accelerator()}
+            "accelerator": detect_accelerator(), "recommended": _recommended_preset()}
 
 
 @router.post("/vlm/{action}")
@@ -492,7 +493,11 @@ def vlm_action(action: str, body: dict = Body(default={}), user: dict = Depends(
 
         def _done(model, mmproj):
             if model is not None:
-                update_settings({"vlm": {"llama": {"model": model.name, "mmproj": mmproj.name}}})
+                st = update_settings({"vlm": {"llama": {"model": model.name, "mmproj": mmproj.name}}})
+                if st["vlm"]["backend"] == "llama_cpp":
+                    # 導入が済んだらすぐ使えるように読み取りエンジンを起動しておく
+                    llama_manager().configure(st["vlm"]["llama"])
+                    llama_manager().restart()
         return setup_runner().start(bin_dir=b.bin_dir, models_dir=b.models_dir, preset=preset,
                                     variant=str(body.get("variant") or "auto"),
                                     skip_binary=bool(body.get("skip_binary")), skip_model=bool(body.get("skip_model")),
@@ -659,5 +664,21 @@ def dashboard(user: dict = Depends(viewer)):
                         "buyer_company": (d.header or {}).get("buyer_company", ""),
                         "created_at": d.created_at.isoformat()} for d in recent]
     return {"counts": counts, "recent": recent_list, "jobs": worker.status(), "watch": watch_service.status(),
-            "vlm": {"backend": get_settings()["vlm"]["backend"], "llama": {
-                k: v for k, v in llama_manager().status().items() if k in ("state", "error", "model")}}}
+            "own_company_set": bool(get_settings()["extraction"].get("own_company_names")),
+            "vlm": {"backend": get_settings()["vlm"]["backend"],
+                    "llama": {k: v for k, v in llama_manager().status().items()
+                              if k in ("state", "error", "model", "needs_setup")},
+                    "setup": setup_runner().status(),
+                    "presets": {k: {"label": v["label"], "size_gb": v["size_gb"]} for k, v in PRESETS.items()},
+                    "recommended": _recommended_preset()}}
+
+
+@functools.lru_cache(maxsize=1)
+def _recommended_preset() -> str:
+    """GPU の VRAM から勧めるモデル(標準 8B は実測で約 8.2GB 使う)。GPU は起動中に変わらないので1回だけ調べる。"""
+    acc = detect_accelerator()
+    if acc["nvidia"] and acc["vram_mb"] >= 9500:
+        return "standard"
+    if acc["nvidia"] and acc["vram_mb"] >= 5500:
+        return "light"
+    return "light" if not acc["nvidia"] else "tiny"

@@ -48,24 +48,50 @@ def _writable(path: Path) -> bool:
         return False
 
 
-def _default_data_dir(home: Path) -> Path:
-    local = home / "data"
-    if not getattr(sys, "frozen", False) or _writable(local):
-        return local
-    # Program Files 等の書込不可フォルダに置かれた場合はユーザー領域へ
+PORTABLE_MARKER = "portable.txt"
+
+
+def user_base() -> Path:
+    """利用者ごとの保存領域(Windows: %LOCALAPPDATA%\\EAGLE)。"""
     base = os.environ.get("LOCALAPPDATA") or os.environ.get("XDG_DATA_HOME") or str(Path.home() / ".local" / "share")
     return Path(base) / "EAGLE"
 
 
-def _find_config_file(home: Path) -> Path | None:
+def storage_base(home: Path) -> Path:
+    """書類・DB・モデルの置き場所の基準。
+    開発時とポータブル版(exe の隣に portable.txt がある)はアプリのフォルダ。
+    インストール版は利用者ごとの領域(インストール先は書き込めないことがあり、アンインストールでも消えないように)。"""
+    if not getattr(sys, "frozen", False):
+        return home
+    if (home / PORTABLE_MARKER).exists() and _writable(home / "data"):
+        return home
+    return user_base()
+
+
+def _find_config_file(home: Path, base: Path) -> Path | None:
     env = os.environ.get("EAGLE_CONFIG", "").strip()
     if env:
         p = Path(env).expanduser()
         return p if p.exists() else None
-    for p in (home / "eagle.toml", home / "config" / "eagle.toml"):
+    for p in (home / "eagle.toml", home / "config" / "eagle.toml", base / "eagle.toml"):
         if p.exists():
             return p
     return None
+
+
+def _default_bin_dir(home: Path, base: Path) -> Path:
+    """llama.cpp の置き場所。アプリと一緒に配られたもの(exe の隣)があればそれを使う。"""
+    bundled = home / "bin" / "llama"
+    if any(bundled.glob("llama-server*")):
+        return bundled
+    return base / "bin" / "llama"
+
+
+def _default_models_dir(home: Path, base: Path) -> Path:
+    bundled = home / "models"
+    if any(bundled.glob("*.gguf")):
+        return bundled
+    return base / "models"
 
 
 def _env(name: str, default=None):
@@ -115,7 +141,8 @@ class BootConfig:
 
 def load_boot_config(mode: str = DESKTOP, **overrides) -> BootConfig:
     home = app_home()
-    cfg_file = _find_config_file(home)
+    base = storage_base(home)
+    cfg_file = _find_config_file(home, base)
     raw: dict = {}
     if cfg_file:
         with open(cfg_file, "rb") as f:
@@ -132,7 +159,9 @@ def load_boot_config(mode: str = DESKTOP, **overrides) -> BootConfig:
         return p if p.is_absolute() else (base / p).resolve()
 
     data_dir = _env("EAGLE_DATA_DIR") or storage.get("data_dir")
-    data_dir = _path(data_dir, home) if data_dir else _default_data_dir(home)
+    data_dir = _path(data_dir, home) if data_dir else base / "data"
+    bin_dir = _env("EAGLE_BIN_DIR") or vlm.get("bin_dir")
+    models_dir = _env("EAGLE_MODELS_DIR") or vlm.get("models_dir")
 
     section = server if mode == SERVER else desktop
     default_host = "0.0.0.0" if mode == SERVER else "127.0.0.1"
@@ -148,8 +177,8 @@ def load_boot_config(mode: str = DESKTOP, **overrides) -> BootConfig:
         ssl_certfile=_env("EAGLE_SSL_CERTFILE") or server.get("ssl_certfile", ""),
         ssl_keyfile=_env("EAGLE_SSL_KEYFILE") or server.get("ssl_keyfile", ""),
         session_hours=int(_env("EAGLE_SESSION_HOURS") or security.get("session_hours") or 12),
-        bin_dir=_path(_env("EAGLE_BIN_DIR") or vlm.get("bin_dir") or "bin/llama", home),
-        models_dir=_path(_env("EAGLE_MODELS_DIR") or vlm.get("models_dir") or "models", home),
+        bin_dir=_path(bin_dir, home) if bin_dir else _default_bin_dir(home, base),
+        models_dir=_path(models_dir, home) if models_dir else _default_models_dir(home, base),
         config_file=cfg_file,
         admin_user=_env("EAGLE_ADMIN_USER", ""),
         admin_password=_env("EAGLE_ADMIN_PASSWORD", ""),

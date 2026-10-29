@@ -23,6 +23,9 @@ from .client import VlmUnavailable
 LOG = logging.getLogger("eagle.llama")
 
 EXE_NAMES = ("llama-server.exe", "llama-server")
+SETUP_NEEDED = "読み取りエンジン(VLM)が未導入です。"
+SETUP_HINT = ("ホーム画面の「導入する」、または 設定 → VLM の「モデルの導入」から導入してください"
+              "(コマンドの場合: python -m eagle setup-vlm)")
 
 
 _job_handle = None
@@ -149,8 +152,12 @@ class LlamaServerManager:
                 self.state = "error"
                 self.error = self.error or f"llama-server が終了しました(code={self.proc.returncode})"
             binary = find_server_binary(self.bin_dir)
+            available = list_models(self.models_dir)
             return {
                 "state": self.state,
+                # 外部の llama-server を使っている時以外で、実行ファイルかモデルが無い
+                "needs_setup": self.state != "external" and (
+                    binary is None or not available["models"] or not available["mmproj"]),
                 "error": self.error,
                 "pid": self.proc.pid if self.proc and self.proc.poll() is None else None,
                 "port": self.port or int(self._settings.get("port", 0) or 0),
@@ -160,7 +167,7 @@ class LlamaServerManager:
                 "binary_found": binary is not None,
                 "models_dir": str(self.models_dir),
                 "bin_dir": str(self.bin_dir),
-                "available": list_models(self.models_dir),
+                "available": available,
                 "log_tail": list(self._tail)[-20:],
                 "uptime_sec": round(time.time() - self.started_at, 1) if self.state == "ready" else 0,
             }
@@ -178,18 +185,10 @@ class LlamaServerManager:
                 self.state, self.error = "external", ""
                 return self.status()
             binary = find_server_binary(self.bin_dir)
-            if binary is None:
-                self.state = "error"
-                self.error = f"llama-server が見つかりません({self.bin_dir})。`python -m eagle setup-vlm` を実行してください"
-                return self.status()
             model, mmproj = auto_select(self.models_dir, str(s.get("model") or ""), str(s.get("mmproj") or ""))
-            if model is None:
+            if binary is None or model is None or mmproj is None:
                 self.state = "error"
-                self.error = f"GGUF モデルがありません({self.models_dir})。`python -m eagle setup-vlm` を実行してください"
-                return self.status()
-            if mmproj is None:
-                self.state = "error"
-                self.error = "画像エンコーダ(mmproj-*.gguf)がありません。画像を読むには mmproj が必要です"
+                self.error = f"{SETUP_NEEDED} {SETUP_HINT}"
                 return self.status()
             args = [
                 str(binary), "-m", str(model), "--mmproj", str(mmproj),

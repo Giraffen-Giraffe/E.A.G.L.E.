@@ -167,6 +167,7 @@ export interface JobsStatus {
   running: { job_id: number; document_id: number; progress: number; message: string; elapsed: number } | null;
   queued: number;
   recent: { id: number; document_id: number; status: string; progress: number; message: string }[];
+  waiting: string;
   alive: boolean;
 }
 

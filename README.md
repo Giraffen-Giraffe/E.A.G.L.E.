@@ -45,7 +45,24 @@ VRAM が足りない場合は、設定画面で「GPU に載せる層数」を�
 
 ## はじめかた
 
-### アプリ版(1台の PC で使う)
+### インストーラで使う(おすすめ・Windows)
+
+1. [Releases](https://github.com/saltea-Giraffe/E.A.G.L.E./releases) から `EAGLE-Setup-<版>.exe` をダウンロードして実行します。
+   「Windows によって PC が保護されました」と表示された場合は「詳細情報」→「実行」を選んでください(コード署名をしていないため)。
+2. スタートメニューの「E.A.G.L.E.」を起動します。
+3. ホーム画面の「導入する」で読み取りエンジン(AI モデル)を導入します。初回だけ数 GB をダウンロードし、以降はインターネット不要です。
+   GPU に合わせて推奨のモデルが選ばれます。
+
+- 管理者権限は不要です(インストール時に「すべてのユーザー」を選んだ場合のみ必要)。
+- 読み取りエンジンが使う Visual C++ ランタイムが入っていない PC では、インストール中に Microsoft から取得して導入します(管理者の確認画面が表示されます)。
+- 書類・データベース・モデルは `%LOCALAPPDATA%\EAGLE` に保存されます。アンインストールしても残るため、不要な場合は手動で削除してください。
+- **ポータブル版** `EAGLE-<版>-portable.zip`: 好きな場所に展開して `EAGLE.exe` を起動します。データは展開したフォルダの中に保存されます。
+- **Webアプリ版**: スタートメニューの「E.A.G.L.E. サーバー(Webアプリ版)」を起動し、初回に管理者アカウントを作成します。
+  ほかの PC からは `http://<サーバーにした PC の IP アドレス>:18770/` で利用できます。
+
+### ソースから使う(開発者向け)
+
+アプリ版(1台の PC で使う):
 
 ```powershell
 git clone https://github.com/saltea-Giraffe/E.A.G.L.E..git
@@ -54,12 +71,9 @@ powershell -ExecutionPolicy Bypass -File scripts\setup.ps1      # 依存の導�
 start_desktop.bat                                                # 起動(専用ウィンドウで開きます)
 ```
 
-- 初回だけ、llama.cpp の実行ファイルと公開モデル(Qwen3-VL)をダウンロードします。以降はインターネット不要です。
 - 低スペックの PC は `scripts\setup.ps1 -Preset light` を使ってください。
-- exe を作る: `scripts\build_desktop.ps1 -Zip` → `dist\EAGLE\EAGLE.exe`(初回起動後、設定 → VLM からモデルを導入)
-  インターネットに繋がらない PC で使う場合は `-IncludeVlm` で llama.cpp とモデルも同梱できます(数 GB。再配布時の注意は [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md))
 
-### Webアプリ版(LAN 内のサーバーで複数人が使う)
+Webアプリ版(LAN 内のサーバーで複数人が使う):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\setup.ps1 -Server
@@ -133,7 +147,7 @@ eagle/            本体(Python)
   api/            Web API(FastAPI)
 frontend/         画面(React + TypeScript)。ビルド結果は eagle/web/static/ へ
 scripts/          導入・ビルド・サービス登録・サンプル作成
-packaging/        配布用 exe の定義(PyInstaller)
+packaging/        配布用 exe とインストーラの定義(PyInstaller / Inno Setup)
 config/           起動設定の例
 docs/             設計・ROI・セキュリティ・運用の資料
 tests/            自動テスト
@@ -148,6 +162,15 @@ bin/ models/ data/  (実行時に作られる。Git 管理外)
 .venv\Scripts\python -m eagle desktop --browser   # API + 画面(ブラウザで開く)
 cd frontend; npm run dev                     # 画面の開発サーバー(/api は 18760 へ中継)
 ```
+
+配布物を作る(Inno Setup 6 が必要):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\build_installer.ps1
+# → dist\EAGLE-Setup-<版>.exe(インストーラ)と dist\EAGLE-<版>-portable.zip(ポータブル版)
+```
+
+インターネットに繋がらない PC 向けには `scripts\build_desktop.ps1 -IncludeVlm -Zip` で llama.cpp とモデルも同梱できます(数 GB。再配布時の注意は [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md))。
 
 ## ライセンス
 

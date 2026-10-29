@@ -63,6 +63,9 @@ def client(tmp_path_factory, monkeypatch_module):
     monkeypatch_module.setenv("EAGLE_DATA_DIR", str(root / "data"))
     monkeypatch_module.setenv("EAGLE_BIN_DIR", str(root / "bin"))
     monkeypatch_module.setenv("EAGLE_MODELS_DIR", str(root / "models"))
+    # 推論は差し替えるので、同梱 llama.cpp の導入待ちにならないよう外部サーバー扱いにする
+    monkeypatch_module.setenv("EAGLE_VLM_BACKEND", "openai")
+    monkeypatch_module.setenv("EAGLE_VLM_URL", "http://127.0.0.1:9/v1")
     import eagle.vlm as vlm_pkg
     from eagle import masters, settings
     from eagle.vlm.client import VlmClient

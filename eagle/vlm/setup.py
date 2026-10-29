@@ -213,6 +213,11 @@ def install_llama_cpp(bin_dir: Path, variant: str = "auto", tag: str = LLAMA_CPP
             raise RuntimeError(f"llama.cpp {tag} に {variant} 用の配布物がありません({pat})")
         arc = download(asset["browser_download_url"], cache_dir / asset["name"], progress, int(asset.get("size") or 0))
         _extract(arc, bin_dir)
+        arc.unlink(missing_ok=True)   # 展開したら圧縮ファイルは不要(数百 MB ある)
+    try:
+        cache_dir.rmdir()
+    except OSError:
+        pass
     from .llama_server import find_server_binary
     exe = find_server_binary(bin_dir)
     if exe is None:

@@ -9,7 +9,7 @@
 
 ## 保存されるもの
 
-`data/`(`storage.data_dir` / 環境変数 `EAGLE_DATA_DIR` で変更可)に保存されます。
+インストーラで入れた場合は `%LOCALAPPDATA%\EAGLE\`、ポータブル版とソースから動かす場合はアプリのフォルダの `data/` に保存されます(`storage.data_dir` / 環境変数 `EAGLE_DATA_DIR` で変更可)。アンインストールしてもデータは消えません。
 
 | 場所 | 内容 |
 |---|---|
