@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eagle-engine"
+dynamic = ["version"]
+description = "E.A.G.L.E. - Evolutionary Automated Generative Learning Engine: local VLM order-form extraction"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "saltea-Giraffe" }]
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.8",
+    "python-multipart>=0.0.9",
+    "sqlalchemy>=2.0",
+    "pypdfium2>=4.30",
+    "pillow>=10.0",
+    "numpy>=1.26",
+    "opencv-python-headless>=4.9",
+    "openpyxl>=3.1",
+    "watchdog>=4.0",
+    "httpx>=0.27",
+    "tomli>=2.0; python_version < '3.11'",
+]
+
+[project.optional-dependencies]
+# Desktop edition: native window (falls back to the browser's app mode if unavailable)
+desktop = ["pywebview>=5.0"]
+# External database drivers (install only what you need)
+postgres = ["psycopg[binary]>=3.1"]
+mysql = ["pymysql>=1.1"]
+odbc = ["pyodbc>=5.1"]
+access = ["pyodbc>=5.1", "sqlalchemy-access>=2.0"]
+# 開発用(テスト・サンプル作成・配布用 exe の作成)
+dev = ["pytest>=8", "reportlab>=4.0", "pyinstaller>=6.16"]
+
+[project.scripts]
+eagle = "eagle.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "eagle.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["eagle*"]
+
+[tool.setuptools.package-data]
+eagle = ["web/static/**/*", "web/static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

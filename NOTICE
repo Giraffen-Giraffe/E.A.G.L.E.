@@ -1,0 +1,7 @@
+E.A.G.L.E. (Evolutionary Automated Generative Learning Engine)
+Copyright 2026 saltea-Giraffe
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product uses third-party software and models (llama.cpp, Qwen3-VL, PDFium and others).
+See THIRD_PARTY_NOTICES.md and the licenses/ folder of the binary distribution for their licenses.

@@ -1,0 +1,31 @@
+# E.A.G.L.E. 起動設定の例。eagle.toml という名前でアプリのフォルダ(または config/)に置くと読み込まれます。
+# ここに無い設定(VLM・読取ルール・監視フォルダ等)は画面の「設定」から変更できます。
+# 環境変数 EAGLE_* でも上書きできます(例: EAGLE_DATA_DIR, EAGLE_PORT, EAGLE_DATABASE_URL)。
+
+[storage]
+# 書類・データベース・ログの保存先。既定はアプリのフォルダの data/
+# data_dir = "D:/EAGLE/data"
+# アプリ内データベース。既定は data/eagle.db (SQLite)。
+# サーバー版で別の DB サーバーを本体の DB として使う場合:
+# database_url = "postgresql+psycopg://eagle:password@localhost:5432/eagle"
+
+[desktop]
+# アプリ版の待受ポート(127.0.0.1 のみ)
+port = 18760
+
+[server]
+# Webアプリ版の待受。LAN 内の他の PC から使う場合は 0.0.0.0
+host = "0.0.0.0"
+port = 18770
+# HTTPS で公開する場合(推奨)
+# ssl_certfile = "C:/EAGLE/certs/server.crt"
+# ssl_keyfile  = "C:/EAGLE/certs/server.key"
+
+[security]
+# ログインの有効時間(時間)
+session_hours = 12
+
+[vlm]
+# 同梱 llama.cpp と GGUF モデルの置き場所(既定: bin/llama と models/)
+# bin_dir = "bin/llama"
+# models_dir = "models"
