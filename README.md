@@ -1,5 +1,7 @@
 # E.A.G.L.E.
 
+<p align="center"><img src="assets/eagle-logo.png" alt="E.A.G.L.E." width="320"></p>
+
 **E**volutionary **A**utomated **G**enerative **L**earning **E**ngine
 （進化型・自立・生成・学習エンジン）
 
@@ -148,6 +150,7 @@ eagle/            本体(Python)
 frontend/         画面(React + TypeScript)。ビルド結果は eagle/web/static/ へ
 scripts/          導入・ビルド・サービス登録・サンプル作成
 packaging/        配布用 exe とインストーラの定義(PyInstaller / Inno Setup)
+assets/           ロゴ・アイコンの元画像
 config/           起動設定の例
 docs/             設計・ROI・セキュリティ・運用の資料
 tests/            自動テスト

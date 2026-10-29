@@ -31,6 +31,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.17763
 LicenseFile=..\LICENSE
 SetupIconFile=eagle.ico
+WizardSmallImageFile=wizard-small-55.bmp,wizard-small-110.bmp
 UninstallDisplayIcon={app}\EAGLE.exe
 UninstallDisplayName={#AppName}
 OutputDir=..\dist

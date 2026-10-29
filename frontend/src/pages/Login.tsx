@@ -25,7 +25,7 @@ export default function Login({ info, onLogin }: { info: Info; onLogin: () => vo
   return (
     <div className="login">
       <form className="login-card" onSubmit={submit}>
-        <img src="/eagle.svg" alt="" width={56} />
+        <img src="/eagle.png" alt="" width={72} />
         <h1>E.A.G.L.E.</h1>
         <p className="muted">Evolutionary Automated Generative Learning Engine</p>
         {info.needs_setup && (

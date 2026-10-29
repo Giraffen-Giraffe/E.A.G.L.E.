@@ -91,7 +91,7 @@ export default function App() {
     <div className="shell" onDragOver={onDragOver} onDragLeave={(e) => e.currentTarget === e.target && setDragging(false)} onDrop={onDrop}>
       <aside className="side">
         <div className="brand">
-          <img src="/eagle.svg" alt="" />
+          <img src="/eagle.png" alt="" />
           <div>
             <div className="brand-name">E.A.G.L.E.</div>
             <div className="brand-sub">{info.mode === "server" ? "Web版" : "アプリ版"} {info.version}</div>

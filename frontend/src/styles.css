@@ -71,7 +71,7 @@ input:disabled, select:disabled, textarea:disabled { opacity: .75; }
 .shell { display: grid; grid-template-columns: 220px 1fr; height: 100%; }
 .side { background: var(--side); color: var(--side-ink); display: flex; flex-direction: column; padding: 14px 10px; gap: 14px; }
 .brand { display: flex; gap: 10px; align-items: center; padding: 4px 6px 10px; border-bottom: 1px solid rgba(255,255,255,.08); }
-.brand img { width: 36px; height: 36px; }
+.brand img { width: 40px; height: 40px; border-radius: 8px; background: #fff; }
 .brand-name { font-weight: 800; letter-spacing: .08em; color: #fff; }
 .brand-sub { font-size: 11px; opacity: .7; }
 .side nav { display: flex; flex-direction: column; gap: 2px; }
@@ -305,7 +305,7 @@ a.stat:hover { border-color: var(--primary); }
 .login { display: grid; place-items: center; height: 100%; background: linear-gradient(160deg, var(--side), var(--brand)); }
 .login-card { background: var(--panel); padding: 30px; border-radius: 16px; width: 360px; display: flex; flex-direction: column; gap: 14px; align-items: stretch; box-shadow: 0 20px 50px rgba(0,0,0,.35); }
 .login-card h1 { text-align: center; letter-spacing: .1em; }
-.login-card img { align-self: center; }
+.login-card img { align-self: center; border-radius: 12px; }
 .login-card p { text-align: center; margin: -8px 0 4px; font-size: 12px; }
 
 @media (max-width: 1100px) {
